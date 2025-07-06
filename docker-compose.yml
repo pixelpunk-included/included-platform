@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Backend Django
+  backend:
+    build: ./included-backend
+    container_name: included-backend
+    volumes:
+      - ./included-backend:/app
+      - ./included-backend/static:/app/static
+      - ./included-backend/media:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=included_backend.settings
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///db.sqlite3}
+    env_file:
+      - ./included-backend/.env
+    command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - included-network
+
+  # Frontend React
+  frontend:
+    build: ./included-frontend
+    container_name: included-frontend
+    volumes:
+      - ./included-frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - included-network
+
+  # Banco de dados (opcional para desenvolvimento local)
+  db:
+    image: postgres:16-alpine
+    container_name: included-db
+    environment:
+      POSTGRES_DB: included
+      POSTGRES_USER: included
+      POSTGRES_PASSWORD: included123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - included-network
+
+  # Redis (para cache e sessões)
+  redis:
+    image: redis:7-alpine
+    container_name: included-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - included-network
+
+volumes:
+  postgres_data:
+
+networks:
+  included-network:
+    driver: bridge 

@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # Backend Django para produção
+  backend:
+    build:
+      context: ./included-backend
+      dockerfile: Dockerfile.prod
+    container_name: included-backend-prod
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - DEBUG=False
+      - DJANGO_SETTINGS_MODULE=included_backend.settings
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+    env_file:
+      - ./included-backend/.env.production
+    depends_on:
+      - db
+      - redis
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  # Frontend React para produção
+  frontend:
+    build:
+      context: ./included-frontend
+      dockerfile: Dockerfile.prod
+    container_name: included-frontend-prod
+    volumes:
+      - static_volume:/app/build/static
+    depends_on:
+      - backend
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  # Nginx para servir frontend e fazer proxy para backend
+  nginx:
+    image: nginx:alpine
+    container_name: included-nginx
+    volumes:
+      - ./included-backend/nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  # Banco de dados
+  db:
+    image: postgres:16-alpine
+    container_name: included-db-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-included}
+      POSTGRES_USER: ${POSTGRES_USER:-included}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-included123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  # Redis para cache e sessões
+  redis:
+    image: redis:7-alpine
+    container_name: included-redis-prod
+    volumes:
+      - redis_data:/data
+    networks:
+      - included-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  included-network:
+    driver: bridge 
