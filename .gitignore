@@ -1,0 +1,71 @@
+# Python/Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.env.*
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# Django Migrations
+included-backend/api/migrations/*.pyc
+included-backend/api/migrations/*.pyo
+included-backend/api/migrations/__pycache__/
+included-backend/api/migrations/*.py-e
+
+# Node/React
+node_modules/
+dist/
+build/
+pnpm-lock.yaml
+yarn.lock
+npm-debug.log*
+.vite/
+.cache/
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# VSCode/IDE
+.vscode/
+.idea/
+*.swp
+
+# Venv
+venv/
+
+# Test/coverage
+coverage/
+htmlcov/
+*.cover
+*.py,cover
+.tox/
+.nox/
+.cache/
+pytest_cache/
+*.mochawesome.json
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Misc
+*.bak
+*.tmp
+*.orig
+*.rej
