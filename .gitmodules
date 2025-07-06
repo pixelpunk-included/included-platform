@@ -1,0 +1,6 @@
+[submodule "included-backend"]
+	path = included-backend
+	url = https://github.com/pixelpunk-included/included-backend.git
+[submodule "included-frontend"]
+	path = included-frontend
+	url = https://github.com/pixelpunk-included/included-frontend.git
