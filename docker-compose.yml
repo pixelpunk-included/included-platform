@@ -26,8 +26,15 @@ services:
     build: ./included-frontend
     container_name: included-frontend
     volumes:
-      - ./included-frontend:/app
-      - /app/node_modules
+      - ./included-frontend/src:/app/src
+      - ./included-frontend/public:/app/public
+      - ./included-frontend/index.html:/app/index.html
+      - ./included-frontend/vite.config.ts:/app/vite.config.ts
+      - ./included-frontend/tsconfig.json:/app/tsconfig.json
+      - ./included-frontend/tsconfig.app.json:/app/tsconfig.app.json
+      - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./included-frontend/biome.json:/app/biome.json
+      - ./included-frontend/components.json:/app/components.json
     ports:
       - "5173:5173"
     environment:
