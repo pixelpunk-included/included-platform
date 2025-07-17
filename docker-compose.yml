@@ -69,6 +69,27 @@ services:
     networks:
       - included-network
 
+  # Frontend React Transformer (Figma)
+  included-frontend:
+    build:
+      context: ./included-frontend
+    ports:
+      - "5174:5173"
+      - "4001:4001"
+    environment:
+      - VITE_FIGMA_TOKEN=${VITE_FIGMA_TOKEN}
+    env_file:
+      - ./included-frontend/.env
+    volumes:
+      - ./included-frontend/src:/app/src
+      - ./included-frontend/public:/app/public
+      - ./included-frontend/server:/app/server
+      - ./included-frontend/.env:/app/.env
+      - ./included-frontend/package.json:/app/package.json
+      - ./included-frontend/node_modules:/app/node_modules
+    networks:
+      - included-network
+
 volumes:
   postgres_data:
 
