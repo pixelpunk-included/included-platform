@@ -90,6 +90,19 @@ services:
     networks:
       - included-network
 
+  storybook:
+    build:
+      context: ./included-frontend
+      dockerfile: Dockerfile.storybook
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./included-frontend:/app
+    environment:
+      - NODE_ENV=development
+    networks:
+      - included-network
+
 volumes:
   postgres_data:
 
