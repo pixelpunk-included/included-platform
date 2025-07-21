@@ -52,6 +52,7 @@ show_help() {
     echo -e "  ${GREEN}logs${NC}     - 📋 Mostra logs em tempo real"
     echo -e "  ${GREEN}backend${NC}  - 🐍 Executa apenas o backend"
     echo -e "  ${GREEN}frontend${NC} - ⚛️  Executa apenas o frontend"
+    echo -e "  ${GREEN}storybook${NC} - 📚 Executa apenas o Storybook"
     echo -e "  ${GREEN}clean${NC}    - 🧹 Limpa containers e volumes"
     echo -e "  ${GREEN}build${NC}    - 🔨 Faz build de todos os serviços"
     echo -e "  ${GREEN}status${NC}   - 📊 Mostra status dos containers"
@@ -78,8 +79,8 @@ show_status() {
 open_shell() {
     local service=$2
     if [ -z "$service" ]; then
-        print_status $RED "❌" "Especifique um serviço (backend/frontend)"
-        echo -e "Uso: $0 shell {backend|frontend}"
+        print_status $RED "❌" "Especifique um serviço (backend/frontend/storybook)"
+        echo -e "Uso: $0 shell {backend|frontend|storybook}"
         exit 1
     fi
     
@@ -135,6 +136,11 @@ case "$1" in
         show_banner
         print_status $GREEN "⚛️" "Executando apenas o frontend..."
         docker-compose up --build frontend
+        ;;
+    "storybook")
+        show_banner
+        print_status $GREEN "📚" "Executando apenas o Storybook..."
+        docker-compose up --build storybook
         ;;
     "clean")
         show_banner

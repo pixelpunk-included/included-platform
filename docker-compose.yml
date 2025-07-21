@@ -94,12 +94,22 @@ services:
     build:
       context: ./included-frontend
       dockerfile: Dockerfile.storybook
+    container_name: included-storybook
     ports:
       - "6006:6006"
     volumes:
-      - ./included-frontend:/app
+      - ./included-frontend/src:/app/src
+      - ./included-frontend/.storybook:/app/.storybook
+      - ./included-frontend/components.json:/app/components.json
+      - ./included-frontend/tsconfig.json:/app/tsconfig.json
+      - ./included-frontend/tsconfig.app.json:/app/tsconfig.app.json
+      - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./included-frontend/biome.json:/app/biome.json
+      - ./included-frontend/vite.config.ts:/app/vite.config.ts
     environment:
       - NODE_ENV=development
+    depends_on:
+      - frontend
     networks:
       - included-network
 
