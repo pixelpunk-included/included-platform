@@ -1,0 +1,12 @@
+# Arquivo de variáveis de ambiente (contém informações sensíveis)
+cloudbuild.env
+
+# Logs de deploy
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Cache do gcloud
+.gcloud/ 

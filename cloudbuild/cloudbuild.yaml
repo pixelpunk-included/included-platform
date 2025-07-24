@@ -1,0 +1,90 @@
+steps:
+  # Build do Backend Django
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/included-backend:latest',
+      '-f', 'included-backend/Dockerfile',
+      'included-backend'
+    ]
+    id: 'build-backend'
+
+  # Build do Frontend React (Produção)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/included-frontend:latest',
+      '-f', 'included-frontend/Dockerfile.prod',
+      'included-frontend'
+    ]
+    id: 'build-frontend'
+
+  # Push das imagens para Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA']
+    waitFor: ['build-backend']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-backend:latest']
+    waitFor: ['build-backend']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA']
+    waitFor: ['build-frontend']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-frontend:latest']
+    waitFor: ['build-frontend']
+
+  # Deploy para Cloud Run (Backend)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'included-backend',
+      '--image', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '8000',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'DJANGO_SETTINGS_MODULE=included_backend.settings'
+    ]
+    waitFor: ['build-backend']
+
+  # Deploy para Cloud Run (Frontend)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'included-frontend',
+      '--image', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '80',
+      '--memory', '256Mi',
+      '--cpu', '1',
+      '--max-instances', '10'
+    ]
+    waitFor: ['build-frontend']
+
+# Configurações
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+# Substituições
+substitutions:
+  _REGION: 'us-central1'
+  _BACKEND_SERVICE: 'included-backend'
+  _FRONTEND_SERVICE: 'included-frontend'
+
+# Imagens que serão criadas
+images:
+  - 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/included-backend:latest'
+  - 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/included-frontend:latest' 
