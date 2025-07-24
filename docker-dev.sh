@@ -165,6 +165,7 @@ case "$1" in
     "status")
         show_banner
         show_status
+
         ;;
     "shell")
         show_banner
