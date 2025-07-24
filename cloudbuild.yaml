@@ -1,3 +1,6 @@
+# Cloud Build Configuration - IncludED Platform
+# Arquivo principal na raiz para compatibilidade com triggers do GCP
+
 steps:
   # Build do Backend Django
   - name: 'gcr.io/cloud-builders/docker'

@@ -62,7 +62,7 @@ deploy_full() {
     print_message "Iniciando deploy completo para ambiente: $env"
     
     if [ "$env" = "prod" ]; then
-        gcloud builds submit --config cloudbuild/cloudbuild.yaml
+        gcloud builds submit --config cloudbuild.yaml
     elif [ "$env" = "dev" ]; then
         gcloud builds submit --config cloudbuild/cloudbuild-dev.yaml
     else

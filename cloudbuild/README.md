@@ -2,6 +2,24 @@
 
 Este diretório contém os arquivos de configuração do Google Cloud Build para automatizar o build e deploy da plataforma IncludED.
 
+## 📁 Estrutura dos Arquivos
+
+```
+included-platform/
+├── cloudbuild.yaml           # 🎯 ARQUIVO PRINCIPAL (RAIZ)
+│                             # Necessário para triggers do GCP
+├── cloudbuild/               # 📂 Diretório de configurações
+│   ├── cloudbuild-dev.yaml   # Build desenvolvimento
+│   ├── cloudbuild-backend.yaml
+│   ├── cloudbuild-frontend.yaml
+│   ├── cloudbuild.env.example
+│   ├── deploy.sh
+│   └── README.md
+└── ...
+```
+
+**Importante**: O arquivo `cloudbuild.yaml` na raiz é necessário para que os triggers automáticos do Google Cloud Build funcionem corretamente.
+
 ## Arquivos de Configuração
 
 ### Script de Deploy Automatizado
@@ -24,12 +42,13 @@ Use o script `deploy.sh` para facilitar os deploys:
 ./deploy.sh help
 ```
 
-### 1. `cloudbuild.yaml` - Build Completo (Produção)
+### 1. `../cloudbuild.yaml` - Build Completo (Produção) - RAIZ
 Build e deploy completo de backend e frontend para produção.
+**Este arquivo está na raiz do projeto para compatibilidade com triggers do GCP.**
 
 **Comando para executar:**
 ```bash
-gcloud builds submit --config cloudbuild/cloudbuild.yaml
+gcloud builds submit --config cloudbuild.yaml
 ```
 
 ### 2. `cloudbuild-backend.yaml` - Backend Apenas
@@ -117,7 +136,7 @@ export API_URL="https://your-backend-url.com"
 
 ```bash
 # Build completo com variáveis customizadas
-gcloud builds submit --config cloudbuild/cloudbuild.yaml \
+gcloud builds submit --config cloudbuild.yaml \
     --substitutions=_REGION=us-central1,_DATABASE_URL="postgresql://...",_SECRET_KEY="..."
 
 # Build do backend com variáveis
@@ -137,7 +156,7 @@ gcloud builds triggers create github \
     --repo-name="included-platform" \
     --repo-owner="seu-usuario" \
     --branch-pattern="^main$" \
-    --build-config="cloudbuild/cloudbuild.yaml"
+    --build-config="cloudbuild.yaml"
 ```
 
 ### Trigger para branch develop (Desenvolvimento)

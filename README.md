@@ -8,8 +8,8 @@ Plataforma educacional inclusiva para gestão de PEI (Plano Educacional Individu
 included-platform/
 ├── included-backend/          # Backend Django
 ├── included-frontend/         # Frontend React
+├── cloudbuild.yaml           # 🆕 Build principal (raiz)
 ├── cloudbuild/               # Configurações Cloud Build
-│   ├── cloudbuild.yaml       # Build completo (produção)
 │   ├── cloudbuild-dev.yaml   # Build desenvolvimento
 │   ├── cloudbuild-backend.yaml
 │   ├── cloudbuild-frontend.yaml
@@ -47,8 +47,8 @@ included-platform/
 ### Deploy Manual
 
 ```bash
-# Produção
-gcloud builds submit --config cloudbuild/cloudbuild.yaml
+# Produção (usando arquivo da raiz)
+gcloud builds submit --config cloudbuild.yaml
 
 # Desenvolvimento
 gcloud builds submit --config cloudbuild/cloudbuild-dev.yaml
