@@ -45,11 +45,13 @@ services:
       - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
       - ./included-frontend/biome.json:/app/biome.json
       - ./included-frontend/components.json:/app/components.json
-      # Arquivos de dependências para reinstalação automática
+      # Arquivos de dependências para detecção automática
       - ./included-frontend/package.json:/app/package.json
       - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
-      # Preservar node_modules como volume nomeado para performance
+      # Volume para node_modules (permitirá reinstalação automática)
       - frontend_node_modules:/app/node_modules
+      # Volume para cache do pnpm
+      - frontend_pnpm_cache:/root/.pnpm-store
     ports:
       - "5173:5173"
     environment:
@@ -60,8 +62,6 @@ services:
       - backend
     networks:
       - included-network
-    # Comando com hot reload habilitado
-    command: pnpm dev --host 0.0.0.0 --port 5173
     restart: unless-stopped
 
   # Banco de dados (opcional para desenvolvimento local)
@@ -159,6 +159,7 @@ volumes:
   frontend_node_modules:
   mcp_node_modules:
   storybook_node_modules:
+  frontend_pnpm_cache:
 
 networks:
   included-network:
