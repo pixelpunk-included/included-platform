@@ -1,9 +1,5 @@
 # IncludED Platform - Cloud Build
 steps:
-  # Download submódulos (backend + frontend)
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['submodule', 'update', '--init', '--recursive']
-
   # Build Backend (Django + PostgreSQL)
   - name: 'gcr.io/cloud-builders/docker'
     args: [
