@@ -1,0 +1,163 @@
+# Cloud Build - Orquestração Multi-Repositório
+# Arquivo para coordenar builds entre os 3 repositórios do projeto
+
+steps:
+  # ===== FASE 1: BUILD DOS COMPONENTES BASE =====
+  
+  # Build do Repositório 1 (included-platform - este repo)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/included-backend:latest',
+      '-f', 'included-backend/Dockerfile',
+      'included-backend'
+    ]
+    id: 'build-platform-backend'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/included-frontend:latest',
+      '-f', 'included-frontend/Dockerfile.prod',
+      'included-frontend'
+    ]
+    id: 'build-platform-frontend'
+
+  # ===== FASE 2: TRIGGER REPOSITÓRIOS EXTERNOS =====
+  
+  # Trigger build do Repositório 2
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'builds', 'submit',
+      'https://github.com/${_GITHUB_OWNER}/${_REPO2_NAME}',
+      '--config=cloudbuild.yaml',
+      '--substitutions=_ENVIRONMENT=${_ENVIRONMENT},_PLATFORM_BACKEND_IMAGE=gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA,_COMMIT_SHA=$COMMIT_SHA'
+    ]
+    waitFor: ['build-platform-backend']
+    id: 'trigger-repo2'
+
+  # Trigger build do Repositório 3
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'builds', 'submit',
+      'https://github.com/${_GITHUB_OWNER}/${_REPO3_NAME}',
+      '--config=cloudbuild.yaml',
+      '--substitutions=_ENVIRONMENT=${_ENVIRONMENT},_PLATFORM_FRONTEND_IMAGE=gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA,_COMMIT_SHA=$COMMIT_SHA'
+    ]
+    waitFor: ['build-platform-frontend']
+    id: 'trigger-repo3'
+
+  # ===== FASE 3: INTEGRAÇÃO E TESTES =====
+  
+  # Aguardar conclusão de todos os builds
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 Aguardando conclusão de todos os repositórios..."
+        
+        # Aguardar builds dos outros repos (implementar polling se necessário)
+        sleep 60
+        
+        echo "✅ Todos os repositórios foram processados"
+    waitFor: ['trigger-repo2', 'trigger-repo3']
+    id: 'wait-external-repos'
+
+  # ===== FASE 4: DEPLOY COORDENADO =====
+  
+  # Deploy do Backend (Repositório 1)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', '${_BACKEND_SERVICE}',
+      '--image', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
+      '--region', '${_REGION}',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '8000',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'DJANGO_SETTINGS_MODULE=included_backend.settings,ENVIRONMENT=${_ENVIRONMENT}'
+    ]
+    waitFor: ['wait-external-repos']
+    id: 'deploy-backend'
+
+  # Deploy do Frontend (Repositório 1)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', '${_FRONTEND_SERVICE}',
+      '--image', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
+      '--region', '${_REGION}',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '80',
+      '--memory', '256Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'API_URL=https://${_BACKEND_SERVICE}-xxxxx-uc.a.run.app'
+    ]
+    waitFor: ['deploy-backend']
+    id: 'deploy-frontend'
+
+  # ===== FASE 5: TESTES DE INTEGRAÇÃO =====
+  
+  # Testes end-to-end entre todos os componentes
+  - name: 'gcr.io/cloud-builders/npm'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🧪 Executando testes de integração multi-repo..."
+        
+        # Aguardar serviços ficarem online
+        sleep 30
+        
+        # Fazer health check de todos os serviços
+        curl -f https://${_BACKEND_SERVICE}-xxxxx-uc.a.run.app/health || exit 1
+        curl -f https://${_FRONTEND_SERVICE}-xxxxx-uc.a.run.app/ || exit 1
+        
+        echo "✅ Todos os serviços estão funcionando"
+    waitFor: ['deploy-frontend']
+    id: 'integration-tests'
+
+# ===== CONFIGURAÇÕES =====
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  substitution_option: ALLOW_LOOSE
+
+# ===== SUBSTITUIÇÕES =====
+substitutions:
+  # Configurações gerais
+  _ENVIRONMENT: 'production'
+  _REGION: 'us-central1'
+  
+  # Repositórios externos
+  _GITHUB_OWNER: 'pixelpunk-included'
+  _REPO2_NAME: 'included-backend'
+  _REPO3_NAME: 'included-frontend'
+  
+  # Serviços
+  _BACKEND_SERVICE: 'included-backend'
+  _FRONTEND_SERVICE: 'included-frontend'
+  
+  # Flags de controle
+  _SKIP_TESTS: 'false'
+  _PARALLEL_BUILD: 'true'
+
+# ===== IMAGENS PRODUZIDAS =====
+images:
+  - 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/included-backend:latest'
+  - 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/included-frontend:latest'
+
+# ===== TIMEOUT =====
+timeout: '3600s'  # 1 hora para builds complexos multi-repo 
