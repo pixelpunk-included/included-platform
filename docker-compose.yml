@@ -6,28 +6,38 @@ services:
     build: ./included-backend
     container_name: included-backend
     volumes:
+      # Mapear todo o código Python para hot reload
       - ./included-backend:/app
       - ./included-backend/static:/app/static
       - ./included-backend/media:/app/media
+      # Mapear requirements.txt para reinstalação automática
+      - ./included-backend/requirements.txt:/app/requirements.txt
     ports:
       - "8000:8000"
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=included_backend.settings
       - DATABASE_URL=${DATABASE_URL:-sqlite:///db.sqlite3}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     env_file:
       - ./included-backend/.env
+    # Comando com auto-reload
     command: python manage.py runserver 0.0.0.0:8000
     networks:
       - included-network
+    # Reiniciar automaticamente se o container parar
+    restart: unless-stopped
 
-  # Frontend React
+  # Frontend React (Principal)
   frontend:
     build: ./included-frontend
     container_name: included-frontend
     volumes:
+      # Mapear todo o código source para hot reload
       - ./included-frontend/src:/app/src
       - ./included-frontend/public:/app/public
+      # Arquivos de configuração importantes
       - ./included-frontend/index.html:/app/index.html
       - ./included-frontend/vite.config.ts:/app/vite.config.ts
       - ./included-frontend/tsconfig.json:/app/tsconfig.json
@@ -35,15 +45,24 @@ services:
       - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
       - ./included-frontend/biome.json:/app/biome.json
       - ./included-frontend/components.json:/app/components.json
+      # Arquivos de dependências para detecção automática
+      - ./included-frontend/package.json:/app/package.json
+      - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Volume para node_modules (permitirá reinstalação automática)
+      - frontend_node_modules:/app/node_modules
+      # Volume para cache do pnpm
+      - frontend_pnpm_cache:/root/.pnpm-store
     ports:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
       - REACT_APP_API_URL=http://localhost:8000
+      - NODE_ENV=development
     depends_on:
       - backend
     networks:
       - included-network
+    restart: unless-stopped
 
   # Banco de dados (opcional para desenvolvimento local)
   db:
@@ -59,6 +78,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - included-network
+    restart: unless-stopped
 
   # Redis (para cache e sessões)
   redis:
@@ -68,43 +88,78 @@ services:
       - "6379:6379"
     networks:
       - included-network
+    restart: unless-stopped
 
-  # Frontend React Transformer (Figma)
-  included-frontend:
+  # MCP Server (Server de transformação Figma)
+  mcp-server:
     build:
       context: ./included-frontend
+    container_name: included-mcp-server
     ports:
       - "5174:5173"
       - "4001:4001"
     environment:
       - VITE_FIGMA_TOKEN=${VITE_FIGMA_TOKEN}
+      - NODE_ENV=development
     env_file:
       - ./included-frontend/.env
     volumes:
+      # Mapear todo o código source para hot reload
       - ./included-frontend/src:/app/src
       - ./included-frontend/public:/app/public
       - ./included-frontend/server:/app/server
       - ./included-frontend/.env:/app/.env
+      # Arquivos de dependências para reinstalação automática
       - ./included-frontend/package.json:/app/package.json
-      - ./included-frontend/node_modules:/app/node_modules
+      - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Preservar node_modules como volume nomeado para performance
+      - mcp_node_modules:/app/node_modules
     networks:
       - included-network
+    # Comando com hot reload habilitado
+    command: pnpm dev --host 0.0.0.0 --port 5173
+    restart: unless-stopped
 
+  # Storybook para desenvolvimento de componentes
   storybook:
     build:
       context: ./included-frontend
       dockerfile: Dockerfile.storybook
+    container_name: included-storybook
     ports:
       - "6006:6006"
     volumes:
-      - ./included-frontend:/app
+      # Mapear código source para hot reload
+      - ./included-frontend/src:/app/src
+      - ./included-frontend/.storybook:/app/.storybook
+      - ./included-frontend/stories:/app/stories
+      # Arquivos de configuração
+      - ./included-frontend/components.json:/app/components.json
+      - ./included-frontend/tsconfig.json:/app/tsconfig.json
+      - ./included-frontend/tsconfig.app.json:/app/tsconfig.app.json
+      - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./included-frontend/biome.json:/app/biome.json
+      - ./included-frontend/vite.config.ts:/app/vite.config.ts
+      # Arquivos de dependências
+      - ./included-frontend/package.json:/app/package.json
+      - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Preservar node_modules como volume nomeado
+      - storybook_node_modules:/app/node_modules
     environment:
       - NODE_ENV=development
+    depends_on:
+      - frontend
     networks:
       - included-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  # Volumes nomeados para node_modules (melhor performance)
+  frontend_node_modules:
+  mcp_node_modules:
+  storybook_node_modules:
+  frontend_pnpm_cache:
 
 networks:
   included-network:
