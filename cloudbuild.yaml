@@ -16,6 +16,7 @@ steps:
 
   # Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
     args: [
       'run', 'deploy', 'included-backend',
       '--image=gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
@@ -25,6 +26,7 @@ steps:
 
   # Deploy Frontend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
     args: [
       'run', 'deploy', 'included-frontend',
       '--image=gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
