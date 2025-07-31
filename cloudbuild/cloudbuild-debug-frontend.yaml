@@ -1,0 +1,57 @@
+# Debug Frontend Build - Cloud Build
+# Arquivo para diagnosticar o problema do pnpm-lock.yaml
+
+steps:
+  # Inicializar submódulos
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 Inicializando submódulos..."
+        git submodule init
+        git submodule update --recursive
+        echo "✅ Submódulos inicializados"
+    id: 'init-submodules'
+
+  # Debug: Ver conteúdo do diretório frontend
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔍 DEBUG: Conteúdo do included-frontend/"
+        ls -la included-frontend/
+        echo ""
+        echo "🔍 Procurando por arquivos de lock:"
+        find included-frontend/ -name "*lock*" -type f || echo "Nenhum arquivo lock encontrado"
+        echo ""
+        echo "🔍 Verificando package.json:"
+        head -10 included-frontend/package.json || echo "package.json não encontrado"
+        echo ""
+        echo "🔍 Verificando se pnpm-lock.yaml existe:"
+        if [ -f "included-frontend/pnpm-lock.yaml" ]; then
+            echo "✅ pnpm-lock.yaml ENCONTRADO"
+            wc -l included-frontend/pnpm-lock.yaml
+        else
+            echo "❌ pnpm-lock.yaml NÃO ENCONTRADO"
+        fi
+    waitFor: ['init-submodules']
+    id: 'debug-frontend'
+
+  # Testar build simples só para ver o erro
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/included-frontend-debug:latest',
+      '-f', 'included-frontend/Dockerfile.prod',
+      'included-frontend'
+    ]
+    waitFor: ['debug-frontend']
+    id: 'test-build-frontend'
+
+# Configurações mínimas
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '600s' 
