@@ -1,0 +1,91 @@
+# Teste de Submódulos - Cloud Build
+# Arquivo para verificar se os submódulos estão sendo inicializados corretamente
+
+steps:
+  # ===== DIAGNÓSTICO INICIAL =====
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔍 DIAGNÓSTICO INICIAL"
+        echo "Working directory: $(pwd)"
+        echo "Arquivos na raiz:"
+        ls -la
+        echo ""
+        echo "Conteúdo do .gitmodules:"
+        cat .gitmodules || echo "❌ .gitmodules não encontrado"
+        echo ""
+        echo "Status dos submódulos:"
+        git submodule status || echo "❌ Comando falhou"
+    id: 'diagnostic'
+
+  # ===== INICIALIZAÇÃO DOS SUBMÓDULOS =====
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 INICIALIZANDO SUBMÓDULOS"
+        
+        # Tentar diferentes métodos de inicialização
+        echo "Método 1: git submodule init + update"
+        git submodule init
+        git submodule update --recursive
+        
+        echo ""
+        echo "Verificando resultado:"
+        ls -la included-backend/ 2>/dev/null && echo "✅ included-backend encontrado" || echo "❌ included-backend AUSENTE"
+        ls -la included-frontend/ 2>/dev/null && echo "✅ included-frontend encontrado" || echo "❌ included-frontend AUSENTE"
+        
+        echo ""
+        echo "Conteúdo dos diretórios:"
+        echo "=== Backend ==="
+        ls -la included-backend/ 2>/dev/null || echo "Diretório vazio ou não existe"
+        echo "=== Frontend ==="
+        ls -la included-frontend/ 2>/dev/null || echo "Diretório vazio ou não existe"
+        
+        echo ""
+        echo "Verificando Dockerfiles:"
+        test -f included-backend/Dockerfile && echo "✅ Backend Dockerfile encontrado" || echo "❌ Backend Dockerfile AUSENTE"
+        test -f included-frontend/Dockerfile && echo "✅ Frontend Dockerfile encontrado" || echo "❌ Frontend Dockerfile AUSENTE"
+        test -f included-frontend/Dockerfile.prod && echo "✅ Frontend Dockerfile.prod encontrado" || echo "❌ Frontend Dockerfile.prod AUSENTE"
+    waitFor: ['diagnostic']
+    id: 'init-submodules'
+
+  # ===== VERIFICAÇÃO FINAL =====
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "📋 RELATÓRIO FINAL"
+        echo "=================="
+        
+        # Status dos submódulos
+        echo "Status dos submódulos:"
+        git submodule status
+        
+        echo ""
+        echo "Estrutura final do projeto:"
+        find . -maxdepth 2 -type f -name "Dockerfile*" || echo "Nenhum Dockerfile encontrado"
+        
+        echo ""
+        echo "Resumo:"
+        if [ -f "included-backend/Dockerfile" ] && [ -f "included-frontend/Dockerfile.prod" ]; then
+            echo "🎉 SUCESSO: Todos os arquivos necessários foram encontrados!"
+            exit 0
+        else
+            echo "❌ FALHA: Arquivos necessários não foram encontrados"
+            exit 1
+        fi
+    waitFor: ['init-submodules']
+    id: 'final-check'
+
+# Configurações
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_2'
+
+# Timeout curto para teste
+timeout: '600s' 

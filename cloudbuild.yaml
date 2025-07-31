@@ -2,6 +2,20 @@
 # Arquivo principal na raiz para compatibilidade com triggers do GCP
 
 steps:
+  # Inicializar submódulos (included-backend e included-frontend)
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 Inicializando submódulos..."
+        git submodule init
+        git submodule update --recursive
+        echo "✅ Submódulos inicializados:"
+        ls -la included-backend/ || echo "❌ Backend não encontrado"
+        ls -la included-frontend/ || echo "❌ Frontend não encontrado"
+    id: 'init-submodules'
+
   # Build do Backend Django
   - name: 'gcr.io/cloud-builders/docker'
     args: [
@@ -11,6 +25,7 @@ steps:
       '-f', 'included-backend/Dockerfile',
       'included-backend'
     ]
+    waitFor: ['init-submodules']
     id: 'build-backend'
 
   # Build do Frontend React (Produção)
@@ -22,6 +37,7 @@ steps:
       '-f', 'included-frontend/Dockerfile.prod',
       'included-frontend'
     ]
+    waitFor: ['init-submodules']
     id: 'build-frontend'
 
   # Push das imagens para Container Registry
