@@ -14,6 +14,14 @@ steps:
       '-f', 'included-frontend/Dockerfile.prod', 'included-frontend'
     ]
 
+  # Push Backend Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA']
+
+  # Push Frontend Image  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA']
+
   # Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud

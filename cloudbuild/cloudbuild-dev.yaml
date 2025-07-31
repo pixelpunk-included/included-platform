@@ -18,6 +18,14 @@ steps:
       'included-frontend'
     ]
 
+  # Push Backend Image (dev)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-backend-dev:$COMMIT_SHA']
+
+  # Push Frontend Image (dev)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-frontend-dev:$COMMIT_SHA']
+
   # Deploy Backend (dev)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     args: [
