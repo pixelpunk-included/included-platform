@@ -61,9 +61,9 @@ steps:
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
-      'run', 'deploy', 'included-backend',
+      'run', 'deploy', '${_BACKEND_SERVICE}',
       '--image', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
-      '--region', 'us-central1',
+      '--region', '${_REGION}',
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '8000',
@@ -78,9 +78,9 @@ steps:
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
-      'run', 'deploy', 'included-frontend',
+      'run', 'deploy', '${_FRONTEND_SERVICE}',
       '--image', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
-      '--region', 'us-central1',
+      '--region', '${_REGION}',
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '80',

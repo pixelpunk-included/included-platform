@@ -1,0 +1,47 @@
+# Teste de Acesso aos Repositórios
+# Verifica se o Cloud Build consegue acessar os submódulos
+
+steps:
+  # Testar acesso aos repositórios
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔍 Testando acesso aos repositórios..."
+        
+        echo "📋 Informações do ambiente:"
+        echo "Working directory: $(pwd)"
+        echo "Git version: $(git --version)"
+        
+        echo ""
+        echo "📁 Conteúdo atual:"
+        ls -la
+        
+        echo ""
+        echo "📄 Conteúdo do .gitmodules:"
+        cat .gitmodules
+        
+        echo ""
+        echo "🔑 Testando acesso ao backend:"
+        git ls-remote https://github.com/pixelpunk-included/included-backend.git HEAD || echo "❌ Acesso negado ao backend"
+        
+        echo ""
+        echo "🔑 Testando acesso ao frontend:" 
+        git ls-remote https://github.com/pixelpunk-included/included-frontend.git HEAD || echo "❌ Acesso negado ao frontend"
+        
+        echo ""
+        echo "🔄 Tentando inicializar submódulos:"
+        git submodule init
+        git submodule update --recursive --verbose
+        
+        echo ""
+        echo "✅ Resultado final:"
+        ls -la included-backend/ 2>/dev/null && echo "✅ Backend baixado com sucesso" || echo "❌ Backend falhou"
+        ls -la included-frontend/ 2>/dev/null && echo "✅ Frontend baixado com sucesso" || echo "❌ Frontend falhou"
+
+# Configurações mínimas
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '600s' 
