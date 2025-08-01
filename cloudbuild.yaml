@@ -1,9 +1,21 @@
 # IncludED Platform - Cloud Build
 steps:
-  # Inicializar submodules (backend + frontend)
+  # Clone repositórios direto (já conectados ao Cloud Build)  
   - name: 'gcr.io/cloud-builders/git'
-    args: ['submodule', 'update', '--init', '--recursive']
-    id: 'init-submodules'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 Obtendo token de acesso..."
+        TOKEN=$(gcloud auth print-access-token)
+        
+        echo "🔄 Clonando repositórios com autenticação..."
+        git clone https://oauth2:$TOKEN@github.com/pixelpunk-included/included-backend.git included-backend
+        git clone https://oauth2:$TOKEN@github.com/pixelpunk-included/included-frontend.git included-frontend
+        
+        echo "✅ Repositórios clonados com sucesso:"
+        ls -la included-backend/ included-frontend/
+    id: 'init-repos'
 
   # Build Backend (Django + PostgreSQL)
   - name: 'gcr.io/cloud-builders/docker'
@@ -11,7 +23,7 @@ steps:
       'build', '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
       'included-backend'
     ]
-    waitFor: ['init-submodules']
+    waitFor: ['init-repos']
 
   # Build Frontend (React + Vite + TypeScript)
   - name: 'gcr.io/cloud-builders/docker'
@@ -19,7 +31,7 @@ steps:
       'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
       '-f', 'included-frontend/Dockerfile.prod', 'included-frontend'
     ]
-    waitFor: ['init-submodules']
+    waitFor: ['init-repos']
 
   # Push Backend Image
   - name: 'gcr.io/cloud-builders/docker'
