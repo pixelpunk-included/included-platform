@@ -7,11 +7,11 @@ steps:
       - '-c'
       - |
         echo "🔄 Obtendo token de acesso..."
-        TOKEN=$(gcloud auth print-access-token)
+        TOKEN=$$(gcloud auth print-access-token)
         
         echo "🔄 Clonando repositórios com autenticação..."
-        git clone https://oauth2:$TOKEN@github.com/pixelpunk-included/included-backend.git included-backend
-        git clone https://oauth2:$TOKEN@github.com/pixelpunk-included/included-frontend.git included-frontend
+        git clone https://oauth2:$$TOKEN@github.com/pixelpunk-included/included-backend.git included-backend
+        git clone https://oauth2:$$TOKEN@github.com/pixelpunk-included/included-frontend.git included-frontend
         
         echo "✅ Repositórios clonados com sucesso:"
         ls -la included-backend/ included-frontend/
