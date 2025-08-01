@@ -1,28 +1,32 @@
 # IncludED Platform - Cloud Build
 steps:
-  # Build Backend (clona na hora do build)
+  # Verificar se submodules existem
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "📂 Verificando submodules..."
+        ls -la
+        echo "📂 Backend:"
+        ls -la included-backend/ || echo "❌ Backend não encontrado"
+        echo "📂 Frontend:"  
+        ls -la included-frontend/ || echo "❌ Frontend não encontrado"
+
+  # Build Backend
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build', '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
-      '-f', 'docker/Dockerfile.backend',
-      '.'
+      'included-backend'
     ]
 
-  # Build Frontend (clona na hora do build)
+  # Build Frontend  
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
-      '-f', 'docker/Dockerfile.frontend',
-      '.'
+      '-f', 'included-frontend/Dockerfile.prod',
+      'included-frontend'
     ]
-
-  # Push Backend Image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA']
-
-  # Push Frontend Image  
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA']
 
   # Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -47,7 +51,7 @@ steps:
 options:
   machineType: E2_HIGHCPU_8
   logging: CLOUD_LOGGING_ONLY
-  
+
 images:
   - gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA
   - gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA 
