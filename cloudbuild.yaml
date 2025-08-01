@@ -89,8 +89,7 @@ steps:
       'run', 'deploy', 'included-storybook',
       '--image=gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA',
       '--region=us-central1',
-      '--port=6006',
-      '--allow-unauthenticated'
+      '--port=80'
     ]
     waitFor: ['push-storybook']
 
