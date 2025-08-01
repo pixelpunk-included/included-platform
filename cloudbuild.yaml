@@ -8,7 +8,7 @@ steps:
       - |
         echo "🔑 Buscando token do Secret Manager..."
         GITHUB_TOKEN=$(gcloud secrets versions access latest --secret=GITHUB_TOKEN)
-        git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        git config --global url."https://$GITHUB_TOKEN:x-oauth-basic@github.com/".insteadOf "https://github.com/"
         echo "🔄 Baixando submodules privados..."
         git submodule update --init --recursive
     id: 'get-submodules'
