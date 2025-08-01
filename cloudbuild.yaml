@@ -1,8 +1,16 @@
 # IncludED Platform - Cloud Build
 steps:
-  # Baixar submodules (já conectados ao Cloud Build)
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['submodule', 'update', '--init', '--recursive']
+  # Step 0: Configurar git com token do Secret Manager e baixar submodules
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔑 Buscando token do Secret Manager..."
+        GITHUB_TOKEN=$(gcloud secrets versions access latest --secret=GITHUB_TOKEN)
+        git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        echo "🔄 Baixando submodules privados..."
+        git submodule update --init --recursive
     id: 'get-submodules'
 
   # Build Backend
@@ -13,7 +21,7 @@ steps:
     ]
     waitFor: ['get-submodules']
 
-  # Build Frontend  
+  # Build Frontend
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
