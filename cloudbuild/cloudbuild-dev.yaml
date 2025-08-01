@@ -3,6 +3,7 @@ steps:
   # Download submódulos
   - name: 'gcr.io/cloud-builders/git'
     args: ['submodule', 'update', '--init', '--recursive']
+    id: 'init-submodules'
 
   # Build Backend (dev)
   - name: 'gcr.io/cloud-builders/docker'
@@ -10,6 +11,7 @@ steps:
       'build', '-t', 'gcr.io/$PROJECT_ID/included-backend-dev:$COMMIT_SHA',
       'included-backend'
     ]
+    waitFor: ['init-submodules']
 
   # Build Frontend (dev)
   - name: 'gcr.io/cloud-builders/docker'
@@ -17,6 +19,7 @@ steps:
       'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend-dev:$COMMIT_SHA',
       'included-frontend'
     ]
+    waitFor: ['init-submodules']
 
   # Push Backend Image (dev)
   - name: 'gcr.io/cloud-builders/docker'

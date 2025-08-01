@@ -1,11 +1,17 @@
 # IncludED Platform - Cloud Build
 steps:
+  # Inicializar submodules (backend + frontend)
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['submodule', 'update', '--init', '--recursive']
+    id: 'init-submodules'
+
   # Build Backend (Django + PostgreSQL)
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build', '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
       'included-backend'
     ]
+    waitFor: ['init-submodules']
 
   # Build Frontend (React + Vite + TypeScript)
   - name: 'gcr.io/cloud-builders/docker'
@@ -13,6 +19,7 @@ steps:
       'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
       '-f', 'included-frontend/Dockerfile.prod', 'included-frontend'
     ]
+    waitFor: ['init-submodules']
 
   # Push Backend Image
   - name: 'gcr.io/cloud-builders/docker'
