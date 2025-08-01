@@ -20,6 +20,13 @@ steps:
       'included-backend'
     ]
     waitFor: ['get-submodules']
+    id: 'build-backend'
+
+  # Push Backend Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA']
+    waitFor: ['build-backend']
+    id: 'push-backend'
 
   # Build Frontend
   - name: 'gcr.io/cloud-builders/docker'
@@ -29,6 +36,13 @@ steps:
       'included-frontend'
     ]
     waitFor: ['get-submodules']
+    id: 'build-frontend'
+
+  # Push Frontend Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA']
+    waitFor: ['build-frontend']
+    id: 'push-frontend'
 
   # Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -39,6 +53,7 @@ steps:
       '--region=us-central1',
       '--port=8000'
     ]
+    waitFor: ['push-backend']
 
   # Deploy Frontend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -49,6 +64,7 @@ steps:
       '--region=us-central1',
       '--port=80'
     ]
+    waitFor: ['push-frontend']
 
 options:
   machineType: E2_HIGHCPU_8
