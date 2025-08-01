@@ -1,17 +1,9 @@
 # IncludED Platform - Cloud Build
 steps:
-  # Verificar se submodules existem
+  # Baixar submodules (já conectados ao Cloud Build)
   - name: 'gcr.io/cloud-builders/git'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "📂 Verificando submodules..."
-        ls -la
-        echo "📂 Backend:"
-        ls -la included-backend/ || echo "❌ Backend não encontrado"
-        echo "📂 Frontend:"  
-        ls -la included-frontend/ || echo "❌ Frontend não encontrado"
+    args: ['submodule', 'update', '--init', '--recursive']
+    id: 'get-submodules'
 
   # Build Backend
   - name: 'gcr.io/cloud-builders/docker'
@@ -19,6 +11,7 @@ steps:
       'build', '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
       'included-backend'
     ]
+    waitFor: ['get-submodules']
 
   # Build Frontend  
   - name: 'gcr.io/cloud-builders/docker'
@@ -27,6 +20,7 @@ steps:
       '-f', 'included-frontend/Dockerfile.prod',
       'included-frontend'
     ]
+    waitFor: ['get-submodules']
 
   # Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
