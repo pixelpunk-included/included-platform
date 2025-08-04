@@ -124,7 +124,7 @@ services:
   storybook:
     build:
       context: ./included-frontend
-      dockerfile: Dockerfile.storybook
+      dockerfile: Dockerfile.storybook.dev
     container_name: included-storybook
     ports:
       - "6006:6006"
