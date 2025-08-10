@@ -72,6 +72,9 @@ services:
       POSTGRES_DB: included
       POSTGRES_USER: included
       POSTGRES_PASSWORD: included123
+      POSTGRES_INITDB_ARGS: "--locale=pt_BR.UTF-8 --lc-collate=pt_BR.UTF-8 --lc-ctype=pt_BR.UTF-8"
+      LC_ALL: pt_BR.UTF-8
+      LANG: pt_BR.UTF-8
     ports:
       - "5432:5432"
     volumes:
