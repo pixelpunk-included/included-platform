@@ -1,0 +1,124 @@
+version: "3.8"
+
+name: included-platform-gcs
+
+services:
+  backend:
+    build:
+      context: ./included-backend
+      dockerfile: Dockerfile
+    container_name: included-backend-gcs
+    environment:
+      # Django settings
+      DJANGO_SETTINGS_MODULE: included_backend.production_settings
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY}
+
+      # Database
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT}
+
+      # Redis
+      REDIS_URL: ${REDIS_URL}
+
+      # Google Cloud Storage
+      GCS_ENABLED: ${GCS_ENABLED}
+      GCS_PROJECT_ID: ${GCS_PROJECT_ID}
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME}
+      GCS_LOCATION: ${GCS_LOCATION}
+      GCS_SERVICE_ACCOUNT_KEY: ${GCS_SERVICE_ACCOUNT_KEY}
+
+      # Security
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE}
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE}
+
+      # Environment
+      ENVIRONMENT: production
+      CREATE_SUPERUSER: "true"
+
+      # Allowed hosts
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      # Service account key
+      - ./included-backend/${GCS_SERVICE_ACCOUNT_KEY}:/app/${GCS_SERVICE_ACCOUNT_KEY}:ro
+      # Logs
+      - ./logs:/app/logs
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: included-db-gcs
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--locale=pt_BR.UTF-8 --lc-collate=pt_BR.UTF-8 --lc-ctype=pt_BR.UTF-8"
+      LC_ALL: pt_BR.UTF-8
+      LANG: pt_BR.UTF-8
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_gcs:/var/lib/postgresql/data
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: included-redis-gcs
+    ports:
+      - "6379:6379"
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./included-frontend
+      dockerfile: Dockerfile.prod
+    container_name: included-frontend-gcs
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - included-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: included-nginx-gcs
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - included-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data_gcs:
+
+networks:
+  included-network:
+    driver: bridge
