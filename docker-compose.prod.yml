@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Backend Django para produção
@@ -12,9 +12,8 @@ services:
       - media_volume:/app/media
     environment:
       - DEBUG=False
-      - DJANGO_SETTINGS_MODULE=included_backend.settings
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - DJANGO_SETTINGS_MODULE=included_backend.production_settings
+      - ENVIRONMENT=production
     env_file:
       - ./included-backend/.env.production
     depends_on:
@@ -56,22 +55,21 @@ services:
       - included-network
     restart: unless-stopped
 
-  # Banco de dados
+  # Banco de dados MySQL
   db:
-    image: postgres:16-alpine
+    image: mysql:8.0
     container_name: included-db-prod
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-included}
-      POSTGRES_USER: ${POSTGRES_USER:-included}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-included123}
-      POSTGRES_INITDB_ARGS: "--locale=pt_BR.UTF-8 --lc-collate=pt_BR.UTF-8 --lc-ctype=pt_BR.UTF-8"
-      LC_ALL: pt_BR.UTF-8
-      LANG: pt_BR.UTF-8
+      MYSQL_DATABASE: included_db
+      MYSQL_USER: included
+      MYSQL_PASSWORD: included123
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     networks:
       - included-network
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
 
   # Redis para cache e sessões
   redis:
@@ -84,11 +82,11 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
   static_volume:
   media_volume:
 
 networks:
   included-network:
-    driver: bridge 
+    driver: bridge

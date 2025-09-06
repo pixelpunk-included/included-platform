@@ -19,14 +19,13 @@ services:
     environment:
       - DEBUG=${DEBUG:-True}
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-included_backend.settings}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
-      - POSTGRES_DB=${POSTGRES_DB:-included}
-      - POSTGRES_HOST=${POSTGRES_HOST:-db}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-included123}
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-      - POSTGRES_USER=${POSTGRES_USER:-included}
+      - MYSQL_DB=${MYSQL_DB:-included_db}
+      - MYSQL_HOST=${MYSQL_HOST:-db}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-included123}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-included}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-development-key-change-in-production}
       - GCS_ENABLED=${GCS_ENABLED:-false}
@@ -84,21 +83,20 @@ services:
 
   # Banco de dados (opcional para desenvolvimento local)
   db:
-    image: postgres:16-alpine
+    image: mysql:8.0
     container_name: included-db
     environment:
-      POSTGRES_DB: included
-      POSTGRES_USER: included
-      POSTGRES_PASSWORD: included123
-      POSTGRES_INITDB_ARGS: "--locale=pt_BR.UTF-8 --lc-collate=pt_BR.UTF-8 --lc-ctype=pt_BR.UTF-8"
-      LC_ALL: pt_BR.UTF-8
-      LANG: pt_BR.UTF-8
+      MYSQL_DATABASE: included_db
+      MYSQL_USER: included
+      MYSQL_PASSWORD: included123
+      MYSQL_ROOT_PASSWORD: rootpassword
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     networks:
       - included-network
+    command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
 
   # Redis (para cache e sessões)
@@ -145,7 +143,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  mysql_data:
   # Volumes nomeados para node_modules (melhor performance)
   frontend_node_modules:
   storybook_node_modules:
