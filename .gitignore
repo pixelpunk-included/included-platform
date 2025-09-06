@@ -183,6 +183,10 @@ media/
 staticfiles/
 static/
 
+# Django Jazzmin
+jazzmin/
+jazzmin_ui_tweaks/
+
 # Logs
 *.log
 logs/
