@@ -10,18 +10,20 @@ included-platform/
 ├── cloudbuild/
 │   ├── cloudbuild-dev.yaml         # Build desenvolvimento
 │   └── README.md
-├── included-backend/                # Django + PostgreSQL 
+├── included-backend/                # Django + MySQL
 └── included-frontend/               # React + Vite + TypeScript
 ```
 
 ## 🚀 Comandos
 
 **Produção:**
+
 ```bash
 gcloud builds submit --config cloudbuild.yaml --substitutions COMMIT_SHA=$(git rev-parse HEAD)
 ```
 
 **Desenvolvimento:**
+
 ```bash
 gcloud builds submit --config cloudbuild/cloudbuild-dev.yaml --substitutions COMMIT_SHA=$(git rev-parse HEAD)
 ```
@@ -32,4 +34,4 @@ gcloud builds submit --config cloudbuild/cloudbuild-dev.yaml --substitutions COM
 2. **Build** das imagens Docker específicas para cada componente
 3. **Deploy** automático no Cloud Run
 
-**Simples. Direto. Funciona.** ✅ 
+**Simples. Direto. Funciona.** ✅

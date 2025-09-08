@@ -24,6 +24,7 @@ included-platform/
 ## 🚀 Deploy Automatizado
 
 ### Pré-requisitos
+
 - Google Cloud Project configurado
 - gcloud CLI instalado e autenticado
 - APIs habilitadas (Cloud Build, Cloud Run, Container Registry)
@@ -63,6 +64,7 @@ gcloud builds submit --config cloudbuild/cloudbuild-frontend.yaml
 ## 🛠️ Desenvolvimento Local
 
 ### Com Docker Compose
+
 ```bash
 # Desenvolvimento
 ./docker-dev.sh
@@ -72,6 +74,7 @@ docker-compose up -d
 ```
 
 ### Sem Docker
+
 ```bash
 # Backend
 cd included-backend
@@ -97,13 +100,16 @@ pnpm dev
 ## 🔧 Configuração
 
 ### Variáveis de Ambiente
+
 Copie o arquivo de exemplo e configure suas variáveis:
+
 ```bash
 cp cloudbuild/cloudbuild.env.example cloudbuild/cloudbuild.env
 # Edite cloudbuild/cloudbuild.env com suas configurações
 ```
 
 ### Configuração Inicial do Google Cloud
+
 ```bash
 # Habilitar APIs
 gcloud services enable cloudbuild.googleapis.com
@@ -118,7 +124,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 ## 📦 Tecnologias
 
-- **Backend**: Django, Django REST Framework, PostgreSQL
+- **Backend**: Django, Django REST Framework, MySQL
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS
 - **Infraestrutura**: Google Cloud Platform, Cloud Run, Cloud Build
 - **Containerização**: Docker, Docker Compose
@@ -133,4 +139,4 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes. 
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.

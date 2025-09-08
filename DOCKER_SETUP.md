@@ -25,6 +25,7 @@ IncludED/
 ## 🚀 Desenvolvimento Local
 
 ### Pré-requisitos
+
 - Docker e Docker Compose instalados
 - Git
 
@@ -54,10 +55,11 @@ IncludED/
 ```
 
 ### Acessos
+
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **Admin Django**: http://localhost:8000/admin
-- **PostgreSQL**: localhost:5432
+- **MySQL**: localhost:3306
 - **Redis**: localhost:6379
 
 ## 🏭 Produção
@@ -80,16 +82,26 @@ docker-compose -f docker-compose.prod.yml down
 Crie os arquivos `.env` necessários:
 
 **Backend** (`included-backend/.env`):
+
 ```env
 DEBUG=True
-DATABASE_URL=sqlite:///db.sqlite3
+MYSQL_DB=included_db
+MYSQL_USER=included
+MYSQL_PASSWORD=included123
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
 SECRET_KEY=your-secret-key
 ```
 
 **Backend Produção** (`included-backend/.env.production`):
+
 ```env
 DEBUG=False
-DATABASE_URL=postgresql://user:pass@db:5432/included
+MYSQL_DB=included_db
+MYSQL_USER=included
+MYSQL_PASSWORD=included123
+MYSQL_HOST=db
+MYSQL_PORT=3306
 SECRET_KEY=your-production-secret-key
 REDIS_URL=redis://redis:6379/0
 ```
@@ -99,11 +111,13 @@ REDIS_URL=redis://redis:6379/0
 ### Backend (Django)
 
 **Dockerfile** - Desenvolvimento:
+
 - Python 3.12
 - Hot reload com `runserver`
 - Volumes montados para desenvolvimento
 
 **Dockerfile.prod** - Produção:
+
 - Gunicorn como servidor WSGI
 - Coleta de arquivos estáticos
 - Otimizado para produção
@@ -111,11 +125,13 @@ REDIS_URL=redis://redis:6379/0
 ### Frontend (React + Vite + pnpm)
 
 **Dockerfile** - Desenvolvimento:
+
 - Node 20 Alpine
 - pnpm para gerenciamento de dependências
 - Hot reload com Vite
 
 **Dockerfile.prod** - Produção:
+
 - Multi-stage build
 - Build otimizado
 - Nginx para servir arquivos estáticos
@@ -123,6 +139,7 @@ REDIS_URL=redis://redis:6379/0
 ### Nginx
 
 O arquivo `nginx.conf` no backend configura:
+
 - Proxy reverso para API Django
 - Servir arquivos estáticos do React
 - Headers de segurança
@@ -180,13 +197,14 @@ docker system prune -a
 2. **Networks**: Todos os serviços estão na mesma rede `included-network`
 3. **Portas**: Evite conflitos de porta com outros serviços
 4. **Dependências**: O frontend depende do backend estar rodando
-5. **Banco de Dados**: PostgreSQL é usado em produção, SQLite em desenvolvimento
+5. **Banco de Dados**: MySQL é usado em todos os ambientes (desenvolvimento e produção)
 
 ## 🔍 Troubleshooting
 
 ### Problemas Comuns
 
 1. **Porta já em uso**:
+
    ```bash
    # Verificar portas em uso
    lsof -i :8000
@@ -194,6 +212,7 @@ docker system prune -a
    ```
 
 2. **Build falhando**:
+
    ```bash
    # Limpar cache do Docker
    docker system prune -f
@@ -202,6 +221,7 @@ docker system prune -a
    ```
 
 3. **Volumes não sincronizando**:
+
    ```bash
    # Rebuild sem cache
    docker-compose up --build --force-recreate
@@ -219,4 +239,4 @@ docker system prune -a
 2. Adicionar testes automatizados
 3. Configurar monitoramento e logs
 4. Implementar backup automático do banco
-5. Configurar SSL/TLS para produção 
+5. Configurar SSL/TLS para produção

@@ -22,7 +22,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
       - MYSQL_DB=${MYSQL_DB:-included_db}
-      - MYSQL_HOST=${MYSQL_HOST:-db}
+      - MYSQL_HOST=${MYSQL_HOST:-host.docker.internal}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-included123}
       - MYSQL_PORT=${MYSQL_PORT:-3306}
       - MYSQL_USER=${MYSQL_USER:-included}

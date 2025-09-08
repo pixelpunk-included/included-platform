@@ -14,12 +14,12 @@ services:
       DEBUG: "False"
       SECRET_KEY: ${SECRET_KEY}
 
-      # Database
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: db
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      # Database - MySQL
+      MYSQL_DB: ${MYSQL_DB:-included_db}
+      MYSQL_USER: ${MYSQL_USER:-included}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-included123}
+      MYSQL_HOST: db
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
 
       # Redis
       REDIS_URL: ${REDIS_URL}
@@ -58,22 +58,21 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:16-alpine
+    image: mysql:8.0
     container_name: included-db-gcs
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_INITDB_ARGS: "--locale=pt_BR.UTF-8 --lc-collate=pt_BR.UTF-8 --lc-ctype=pt_BR.UTF-8"
-      LC_ALL: pt_BR.UTF-8
-      LANG: pt_BR.UTF-8
+      MYSQL_DATABASE: ${MYSQL_DB:-included_db}
+      MYSQL_USER: ${MYSQL_USER:-included}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-included123}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data_gcs:/var/lib/postgresql/data
+      - mysql_data_gcs:/var/lib/mysql
     networks:
       - included-network
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
 
   redis:
     image: redis:7-alpine
@@ -117,7 +116,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data_gcs:
+  mysql_data_gcs:
 
 networks:
   included-network:
