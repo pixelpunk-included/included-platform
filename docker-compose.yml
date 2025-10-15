@@ -110,43 +110,43 @@ services:
     restart: unless-stopped
 
   # Storybook para desenvolvimento de componentes
-  storybook:
-    build:
-      context: ./included-frontend
-      dockerfile: Dockerfile.storybook.dev
-    container_name: included-storybook
-    ports:
-      - "6006:6006"
-    volumes:
-      # Mapear código source para hot reload
-      - ./included-frontend/src:/app/src
-      - ./included-frontend/.storybook:/app/.storybook
-      - ./included-frontend/stories:/app/stories
-      # Arquivos de configuração
-      - ./included-frontend/components.json:/app/components.json
-      - ./included-frontend/tsconfig.json:/app/tsconfig.json
-      - ./included-frontend/tsconfig.app.json:/app/tsconfig.app.json
-      - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
-      - ./included-frontend/biome.json:/app/biome.json
-      - ./included-frontend/vite.config.ts:/app/vite.config.ts
-      # Arquivos de dependências
-      - ./included-frontend/package.json:/app/package.json
-      - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
-      # Preservar node_modules como volume nomeado
-      - storybook_node_modules:/app/node_modules
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - frontend
-    networks:
-      - included-network
-    restart: unless-stopped
+  # storybook:
+  #   build:
+  #     context: ./included-frontend
+  #     dockerfile: Dockerfile.storybook.dev
+  #   container_name: included-storybook
+  #   ports:
+  #     - "6006:6006"
+  #   volumes:
+  #     # Mapear código source para hot reload
+  #     - ./included-frontend/src:/app/src
+  #     - ./included-frontend/.storybook:/app/.storybook
+  #     - ./included-frontend/stories:/app/stories
+  #     # Arquivos de configuração
+  #     - ./included-frontend/components.json:/app/components.json
+  #     - ./included-frontend/tsconfig.json:/app/tsconfig.json
+  #     - ./included-frontend/tsconfig.app.json:/app/tsconfig.app.json
+  #     - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
+  #     - ./included-frontend/biome.json:/app/biome.json
+  #     - ./included-frontend/vite.config.ts:/app/vite.config.ts
+  #     # Arquivos de dependências
+  #     - ./included-frontend/package.json:/app/package.json
+  #     - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
+  #     # Preservar node_modules como volume nomeado
+  #     - storybook_node_modules:/app/node_modules
+  #   environment:
+  #     - NODE_ENV=development
+  #   depends_on:
+  #     - frontend
+  #   networks:
+  #     - included-network
+  #   restart: unless-stopped
 
 volumes:
   mysql_data:
   # Volumes nomeados para node_modules (melhor performance)
   frontend_node_modules:
-  storybook_node_modules:
+  # storybook_node_modules:
   frontend_pnpm_cache:
 
 networks:
