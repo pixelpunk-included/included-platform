@@ -7,8 +7,3 @@ tunnels:
     proto: http
     schemes: [https]
     inspect: true
-  frontend:
-    addr: frontend:5173
-    proto: http
-    schemes: [https]
-    inspect: true
