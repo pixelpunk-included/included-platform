@@ -2,13 +2,23 @@
 
 echo "🚀 Iniciando ambiente de desenvolvimento com ngrok..."
 
+# Carregar variáveis de ambiente do .env
+if [ -f .env ]; then
+    echo "📄 Carregando variáveis do .env..."
+    export $(cat .env | grep -v '^#' | xargs)
+else
+    echo "⚠️  Arquivo .env não encontrado!"
+fi
+
 # Verificar se NGROK_AUTHTOKEN está definido
 if [ -z "$NGROK_AUTHTOKEN" ]; then
     echo "❌ NGROK_AUTHTOKEN não definido!"
-    echo "📝 Configure com: export NGROK_AUTHTOKEN=seu_authtoken_aqui"
+    echo "📝 Configure no arquivo .env: NGROK_AUTHTOKEN=seu_authtoken_aqui"
     echo "🔗 Obtenha seu authtoken em: https://dashboard.ngrok.com/get-started/your-authtoken"
     exit 1
 fi
+
+echo "✅ NGROK_AUTHTOKEN carregado: ${NGROK_AUTHTOKEN:0:20}..."
 
 # Parar containers existentes
 echo "🛑 Parando containers existentes..."
