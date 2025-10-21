@@ -109,6 +109,27 @@ services:
       - included-network
     restart: unless-stopped
 
+  # ngrok para desenvolvimento (túnel público)
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: included-ngrok
+    restart: unless-stopped
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml
+    ports:
+      - "4040:4040" # ngrok web interface
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    networks:
+      - included-network
+    depends_on:
+      - backend
+
   # Storybook para desenvolvimento de componentes
   # storybook:
   #   build:

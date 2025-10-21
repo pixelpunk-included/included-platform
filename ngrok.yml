@@ -1,0 +1,14 @@
+version: "3"
+agent:
+  authtoken: 34LV1FxQXJiGfS7j8WiGe8HkU8V_4SVd2gktn52YkNQzRWadJ
+tunnels:
+  backend:
+    addr: backend:8000
+    proto: http
+    schemes: [https]
+    inspect: true
+  frontend:
+    addr: frontend:5173
+    proto: http
+    schemes: [https]
+    inspect: true
