@@ -17,6 +17,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build', '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
+      '-f', 'included-backend/Dockerfile.prod',
       'included-backend'
     ]
     waitFor: ['get-submodules']
@@ -67,7 +68,15 @@ steps:
       'run', 'deploy', 'included-backend',
       '--image=gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
       '--region=us-central1',
-      '--port=8000'
+      '--port=8000',
+      '--platform=managed',
+      '--allow-unauthenticated',
+      '--memory=2Gi',
+      '--cpu=2',
+      '--timeout=300',
+      '--concurrency=80',
+      '--max-instances=10',
+      '--set-env-vars=ENVIRONMENT=production,DJANGO_SETTINGS_MODULE=included_backend.production_settings,DEBUG=false'
     ]
     waitFor: ['push-backend']
 
@@ -101,4 +110,4 @@ options:
 images:
   - gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA
   - gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA
-  - gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA 
+  - gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA
