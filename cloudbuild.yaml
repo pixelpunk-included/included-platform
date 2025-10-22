@@ -34,6 +34,7 @@ steps:
     args: [
       'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
       '-f', 'included-frontend/Dockerfile.prod',
+      '--build-arg', 'VITE_API_URL=https://included-backend-556028162987.us-central1.run.app',
       'included-frontend'
     ]
     waitFor: ['get-submodules']
@@ -74,7 +75,7 @@ steps:
       '--port=80',
       '--platform=managed',
       '--allow-unauthenticated',
-      '--set-env-vars=VITE_API_URL=https://included-backend-556028162987.us-central1.run.app'
+      '--update-env-vars=VITE_API_URL=https://included-backend-556028162987.us-central1.run.app'
     ]
     waitFor: ['push-frontend']
 
