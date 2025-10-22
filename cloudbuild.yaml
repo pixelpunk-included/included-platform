@@ -71,7 +71,10 @@ steps:
       'run', 'deploy', 'included-frontend',
       '--image=gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
       '--region=us-central1',
-      '--port=80'
+      '--port=80',
+      '--platform=managed',
+      '--allow-unauthenticated',
+      '--set-env-vars=VITE_API_URL=https://included-backend-556028162987.us-central1.run.app'
     ]
     waitFor: ['push-frontend']
 
