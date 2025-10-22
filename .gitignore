@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Scripts com chaves sensíveis
+configure-cloud-run-env.sh
+
 # C extensions
 *.so
 

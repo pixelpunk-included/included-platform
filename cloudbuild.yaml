@@ -60,8 +60,7 @@ steps:
       '--cpu=2',
       '--timeout=300',
       '--concurrency=80',
-      '--max-instances=10',
-      '--set-env-vars=ENVIRONMENT=production,DJANGO_SETTINGS_MODULE=included_backend.production_settings,DEBUG=false'
+      '--max-instances=10'
     ]
     waitFor: ['push-backend']
 
