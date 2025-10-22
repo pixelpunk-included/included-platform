@@ -45,21 +45,6 @@ steps:
     waitFor: ['build-frontend']
     id: 'push-frontend'
 
-  # Build Storybook
-  - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build', '-t', 'gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA',
-      '-f', 'included-frontend/Dockerfile.storybook',
-      'included-frontend'
-    ]
-    waitFor: ['get-submodules']
-    id: 'build-storybook'
-
-  # Push Storybook Image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA']
-    waitFor: ['build-storybook']
-    id: 'push-storybook'
 
   # Deploy Backend
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -91,18 +76,6 @@ steps:
     ]
     waitFor: ['push-frontend']
 
-  # Deploy Storybook
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'included-storybook',
-      '--image=gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA',
-      '--region=us-central1',
-      '--port=6006',
-      '--allow-unauthenticated'
-    ]
-    waitFor: ['push-storybook']
-
 options:
   machineType: E2_HIGHCPU_8
   logging: CLOUD_LOGGING_ONLY
@@ -110,4 +83,3 @@ options:
 images:
   - gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA
   - gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA
-  - gcr.io/$PROJECT_ID/included-storybook:$COMMIT_SHA
