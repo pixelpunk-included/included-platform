@@ -17,24 +17,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEBUG=${DEBUG:-True}
-      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-included_backend.settings}
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
-      - MYSQL_DB=${MYSQL_DB:-included_db}
-      - MYSQL_HOST=${MYSQL_HOST:-db}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-included123}
-      - MYSQL_PORT=${MYSQL_PORT:-3306}
-      - MYSQL_USER=${MYSQL_USER:-included}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY:-django-insecure-development-key-change-in-production}
-      - GCS_ENABLED=${GCS_ENABLED:-false}
-      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
-      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
-      - GCS_LOCATION=${GCS_LOCATION}
-      - GCS_SERVICE_ACCOUNT_KEY=${GCS_SERVICE_ACCOUNT_KEY}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - CREATE_SUPERUSER=${CREATE_SUPERUSER:-false}
+      - REDIS_URL=redis://redis:6379/0
     env_file:
       - ./included-backend/.env
     # Comando com auto-reload
