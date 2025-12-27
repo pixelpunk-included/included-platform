@@ -71,9 +71,9 @@ services:
       - frontend_pnpm_cache:/root/.pnpm-store
     ports:
       - "5173:5173"
+    env_file:
+      - ./included-frontend/.env
     environment:
-      - VITE_API_URL=http://localhost:8000
-      - REACT_APP_API_URL=http://localhost:8000
       - NODE_ENV=development
     depends_on:
       - backend
