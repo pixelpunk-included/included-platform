@@ -29,15 +29,28 @@ steps:
     waitFor: ['build-backend']
     id: 'push-backend'
 
+  # Buscar VITE_GOOGLE_CLIENT_ID do Secret Manager
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest --secret=VITE_GOOGLE_CLIENT_ID > /workspace/vite_google_client_id.txt
+    id: 'get-google-client-id'
+    waitFor: ['get-submodules']
+
   # Build Frontend
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build', '-t', 'gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA',
-      '-f', 'included-frontend/Dockerfile.prod',
-      '--build-arg', 'VITE_API_URL=https://included-backend-556028162987.us-central1.run.app',
-      'included-frontend'
-    ]
-    waitFor: ['get-submodules']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker build -t gcr.io/$PROJECT_ID/included-frontend:$COMMIT_SHA \
+          -f included-frontend/Dockerfile.prod \
+          --build-arg VITE_API_URL=https://included-backend-556028162987.us-central1.run.app \
+          --build-arg VITE_GOOGLE_CLIENT_ID=$(cat /workspace/vite_google_client_id.txt) \
+          included-frontend
+    waitFor: ['get-google-client-id']
     id: 'build-frontend'
 
   # Push Frontend Image
@@ -66,6 +79,7 @@ steps:
     waitFor: ['push-backend']
 
   # Deploy Frontend
+  # Nota: Variáveis VITE_* são incorporadas no build, não em runtime
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
@@ -74,8 +88,7 @@ steps:
       '--region=us-central1',
       '--port=80',
       '--platform=managed',
-      '--allow-unauthenticated',
-      '--update-env-vars=VITE_API_URL=https://included-backend-556028162987.us-central1.run.app'
+      '--allow-unauthenticated'
     ]
     waitFor: ['push-frontend']
 
