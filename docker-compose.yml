@@ -17,24 +17,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEBUG=${DEBUG:-True}
-      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-included_backend.settings}
+      # Configurações específicas do runtime Python/Docker (não vêm do .env)
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
-      - MYSQL_DB=${MYSQL_DB:-included_db}
-      - MYSQL_HOST=${MYSQL_HOST:-db}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-included123}
-      - MYSQL_PORT=${MYSQL_PORT:-3306}
-      - MYSQL_USER=${MYSQL_USER:-included}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY:-django-insecure-development-key-change-in-production}
-      - GCS_ENABLED=${GCS_ENABLED:-false}
-      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
-      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
-      - GCS_LOCATION=${GCS_LOCATION}
-      - GCS_SERVICE_ACCOUNT_KEY=${GCS_SERVICE_ACCOUNT_KEY}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - CREATE_SUPERUSER=${CREATE_SUPERUSER:-false}
+      # Configuração do Django (pode ser sobrescrita pelo .env se necessário)
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-included_backend.settings}
+
     env_file:
       - ./included-backend/.env
     # Comando com auto-reload
@@ -129,39 +117,6 @@ services:
       - included-network
     depends_on:
       - backend
-
-  # Storybook para desenvolvimento de componentes
-  # storybook:
-  #   build:
-  #     context: ./included-frontend
-  #     dockerfile: Dockerfile.storybook.dev
-  #   container_name: included-storybook
-  #   ports:
-  #     - "6006:6006"
-  #   volumes:
-  #     # Mapear código source para hot reload
-  #     - ./included-frontend/src:/app/src
-  #     - ./included-frontend/.storybook:/app/.storybook
-  #     - ./included-frontend/stories:/app/stories
-  #     # Arquivos de configuração
-  #     - ./included-frontend/components.json:/app/components.json
-  #     - ./included-frontend/tsconfig.json:/app/tsconfig.json
-  #     - ./included-frontend/tsconfig.app.json:/app/tsconfig.app.json
-  #     - ./included-frontend/tsconfig.node.json:/app/tsconfig.node.json
-  #     - ./included-frontend/biome.json:/app/biome.json
-  #     - ./included-frontend/vite.config.ts:/app/vite.config.ts
-  #     # Arquivos de dependências
-  #     - ./included-frontend/package.json:/app/package.json
-  #     - ./included-frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
-  #     # Preservar node_modules como volume nomeado
-  #     - storybook_node_modules:/app/node_modules
-  #   environment:
-  #     - NODE_ENV=development
-  #   depends_on:
-  #     - frontend
-  #   networks:
-  #     - included-network
-  #   restart: unless-stopped
 
 volumes:
   mysql_data:
