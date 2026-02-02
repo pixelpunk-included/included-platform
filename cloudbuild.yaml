@@ -72,9 +72,9 @@ steps:
 
 
   # Deploy Backend
-  # Cloud Run startup probe has a 240s limit. SKIP_COLLECTSTATIC=true evita
-  # collectstatic no startup (estáticos via GCS ou build). Banco deve ser
-  # acessível (VPC/Cloud SQL) para wait_for_db e migrate terminarem a tempo.
+  # SECRET_KEY vem do Secret Manager (secret DJANGO_SECRET_KEY). Crie com:
+  #   ./included-backend/scripts/setup-secret-key.sh
+  # Cloud Run startup probe 240s. SKIP_COLLECTSTATIC=true evita collectstatic no startup.
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
@@ -90,7 +90,8 @@ steps:
       '--timeout=300',
       '--concurrency=80',
       '--max-instances=10',
-      '--set-env-vars', 'SKIP_COLLECTSTATIC=true'
+      '--set-env-vars', 'SKIP_COLLECTSTATIC=true',
+      '--set-secrets', 'SECRET_KEY=DJANGO_SECRET_KEY:latest'
     ]
     waitFor: ['push-backend']
 
