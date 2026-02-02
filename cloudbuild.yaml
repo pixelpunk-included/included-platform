@@ -13,19 +13,30 @@ steps:
         git submodule update --init --recursive
     id: 'get-submodules'
 
-  # Build Backend
+  # Build Backend (com cache: reutiliza layers da última imagem para build mais rápido)
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build', '-t', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA',
-      '-f', 'included-backend/Dockerfile.prod',
-      'included-backend'
-    ]
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/included-backend:latest'
+      - '--cache-from'
+      - 'gcr.io/$PROJECT_ID/included-backend:latest'
+      - '-f'
+      - 'included-backend/Dockerfile.prod'
+      - 'included-backend'
     waitFor: ['get-submodules']
     id: 'build-backend'
 
-  # Push Backend Image
+  # Push Backend Image (push da tag do commit e latest para cache no próximo build)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker push gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA
+        docker push gcr.io/$PROJECT_ID/included-backend:latest || true
     waitFor: ['build-backend']
     id: 'push-backend'
 
@@ -61,9 +72,9 @@ steps:
 
 
   # Deploy Backend
-  # Cloud Run startup probe has a 240s limit. Use --cpu-boost to speed up
-  # startup. Set SKIP_COLLECTSTATIC=true in the service if static files are
-  # served from GCS to avoid collectstatic in the container.
+  # Cloud Run startup probe has a 240s limit. SKIP_COLLECTSTATIC=true evita
+  # collectstatic no startup (estáticos via GCS ou build). Banco deve ser
+  # acessível (VPC/Cloud SQL) para wait_for_db e migrate terminarem a tempo.
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
@@ -78,7 +89,8 @@ steps:
       '--cpu-boost',
       '--timeout=300',
       '--concurrency=80',
-      '--max-instances=10'
+      '--max-instances=10',
+      '--set-env-vars', 'SKIP_COLLECTSTATIC=true'
     ]
     waitFor: ['push-backend']
 
