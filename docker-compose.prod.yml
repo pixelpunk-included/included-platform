@@ -55,15 +55,17 @@ services:
       - included-network
     restart: unless-stopped
 
-  # Banco de dados MySQL
+  # Banco de dados MySQL (senhas via .env.production; nunca hardcoded)
   db:
     image: mysql:8.0
     container_name: included-db-prod
+    env_file:
+      - ./included-backend/.env.production
     environment:
-      MYSQL_DATABASE: included_db
-      MYSQL_USER: included
-      MYSQL_PASSWORD: included123
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ${MYSQL_DB:-included_db}
+      MYSQL_USER: ${MYSQL_USER:-included}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:

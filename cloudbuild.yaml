@@ -61,6 +61,9 @@ steps:
 
 
   # Deploy Backend
+  # Cloud Run startup probe has a 240s limit. Use --cpu-boost to speed up
+  # startup. Set SKIP_COLLECTSTATIC=true in the service if static files are
+  # served from GCS to avoid collectstatic in the container.
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
@@ -72,6 +75,7 @@ steps:
       '--allow-unauthenticated',
       '--memory=2Gi',
       '--cpu=2',
+      '--cpu-boost',
       '--timeout=300',
       '--concurrency=80',
       '--max-instances=10'
