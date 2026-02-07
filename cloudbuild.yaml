@@ -13,19 +13,19 @@ steps:
         git submodule update --init --recursive
     id: 'get-submodules'
 
-  # Build Backend (com cache: reutiliza layers da última imagem para build mais rápido)
+  # Build Backend (com cache + índice do chatbot na imagem via OPENAI_API_KEY do Secret Manager)
   - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
     args:
-      - 'build'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/included-backend:latest'
-      - '--cache-from'
-      - 'gcr.io/$PROJECT_ID/included-backend:latest'
-      - '-f'
-      - 'included-backend/Dockerfile.prod'
-      - 'included-backend'
+      - '-c'
+      - |
+        docker build -t gcr.io/$PROJECT_ID/included-backend:$COMMIT_SHA \
+          -t gcr.io/$PROJECT_ID/included-backend:latest \
+          --cache-from gcr.io/$PROJECT_ID/included-backend:latest \
+          --build-arg OPENAI_API_KEY="$$OPENAI_API_KEY" \
+          -f included-backend/Dockerfile.prod \
+          included-backend
+    secretEnv: ['OPENAI_API_KEY']
     waitFor: ['get-submodules']
     id: 'build-backend'
 
@@ -108,6 +108,12 @@ steps:
       '--allow-unauthenticated'
     ]
     waitFor: ['push-frontend']
+
+# Secret OPENAI_API_KEY para build do índice do chatbot na imagem do backend
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/OPENAI_API_KEY/versions/latest
+      env: 'OPENAI_API_KEY'
 
 options:
   machineType: E2_HIGHCPU_8
