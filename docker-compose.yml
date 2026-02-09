@@ -1,19 +1,15 @@
 version: "3.8"
 
 services:
-  # Backend Django (contexto = pasta pai IncludED, para incluir pixel-punk-core como irmão)
+  # Backend Django
   backend:
-    build:
-      context: ..
-      dockerfile: included-platform/included-backend/Dockerfile
+    build: ./included-backend
     container_name: included-backend
     volumes:
       # Mapear todo o código Python para hot reload
       - ./included-backend:/app
       - ./included-backend/static:/app/static
       - ./included-backend/media:/app/media
-      # pixel-punk-core (repositório irmão) para edição em dev
-      - ../pixel-punk-core:/pixel-punk-core
       # Mapear requirements.txt para reinstalação automática
       - ./included-backend/requirements.txt:/app/requirements.txt
       # Google Cloud Storage key
