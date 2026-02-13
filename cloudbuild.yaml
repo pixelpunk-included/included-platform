@@ -90,6 +90,7 @@ steps:
         "--cpu-boost",
         "--timeout=300",
         "--concurrency=80",
+        "--min-instances=1",
         "--max-instances=10",
         "--add-cloudsql-instances=$PROJECT_ID:us-central1:included",
         "--update-env-vars",
